@@ -1,78 +1,88 @@
-'use client';
+// app/search/page.tsx
+'use client'
 
-import { useState } from 'react';
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
-  const [summary, setSummary] = useState('');
-  const [results, setResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState('')
+  const [summary, setSummary] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
   const handleSearch = async () => {
-    if (!query.trim()) return;
-
-    setLoading(true);
-    setSummary('');
-    setResults([]);
-
+    if (!query.trim()) return
+    setLoading(true)
     try {
-     const response = await fetch(`https://evoke-backend.onrender.com/search?query=${encodeURIComponent(query)}`);
-
-      const data = await response.json();
-
-      if (data?.summary) setSummary(data.summary);
-      if (data?.results) setResults(data.results);
+      const res = await fetch(`https://evoke-backend.onrender.com/search?query=${encodeURIComponent(query)}`)
+      const data = await res.json()
+      setSummary(data.summary)
+      setResults(data.results)
     } catch (err) {
-      console.error('Search error:', err);
-      setSummary('Error fetching results. Please try again.');
-    } finally {
-      setLoading(false);
+      console.error('Search failed:', err)
     }
-  };
+    setLoading(false)
+  }
 
   return (
-    <div className="min-h-screen p-8 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Evoke AI Search 🔍</h1>
-
-      <input
-        className="w-full p-2 border border-gray-300 rounded mb-4"
-        type="text"
-        placeholder="Ask anything..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-      />
-
-      <button
-        onClick={handleSearch}
-        className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-        disabled={loading}
+    <div className="min-h-screen bg-black text-green-400 font-mono flex flex-col items-center p-4">
+      <motion.h1
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-4xl md:text-5xl font-bold my-6 text-center"
       >
-        {loading ? 'Searching...' : 'Search'}
-      </button>
+        Evoke 🔍 AI Search
+      </motion.h1>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="w-full max-w-xl flex"
+      >
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          placeholder="Type anything..."
+          className="flex-1 px-4 py-3 rounded-l-xl bg-zinc-900 text-white outline-none border border-zinc-700"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-green-500 hover:bg-green-400 text-black px-6 py-3 rounded-r-xl font-bold"
+        >
+          Go
+        </button>
+      </motion.div>
+
+      {loading && <p className="mt-6 text-green-300 animate-pulse">Thinking...</p>}
 
       {summary && (
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold">AI Summary</h2>
-          <p className="mt-2 text-gray-800">{summary}</p>
+        <div className="mt-8 bg-zinc-900 text-white p-4 rounded-lg shadow-lg w-full max-w-2xl">
+          <h2 className="text-lg font-semibold mb-2">AI Summary</h2>
+          <p className="text-sm leading-relaxed">{summary}</p>
         </div>
       )}
 
-      {results.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold mb-2">Top Results</h2>
-          <ul className="space-y-3">
-            {results.map((item, idx) => (
-              <li key={idx} className="border p-3 rounded hover:bg-gray-100">
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium">
-                  {item.title || item.url}
-                </a>
-                <p className="text-sm text-gray-700">{item.description}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className="mt-6 w-full max-w-2xl space-y-4">
+        {results.map((result, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="bg-zinc-800 hover:bg-zinc-700 text-white p-4 rounded-lg shadow"
+          >
+            <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-green-400 font-bold underline">
+              {result.title}
+            </a>
+            <p className="text-sm mt-1" dangerouslySetInnerHTML={{ __html: result.description }} />
+          </motion.div>
+        ))}
+      </div>
+
+      <footer className="mt-10 text-sm text-zinc-500">
+        Powered by <a href="https://evoksi.com" className="underline">EvokeSI</a>
+      </footer>
     </div>
-  );
+  )
 }
