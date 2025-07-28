@@ -86,3 +86,4 @@ export default function SearchPage() {
     </div>
   )
 }
+// Trigger redeploy to Vercel
